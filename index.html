@@ -1,68 +1,233 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Linear Equation Solver</title>
-  <style>
-    /* Basic CSS Styling */
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #f0f0f0;
-    }
-
-    #container {
-      background-color: #fff;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-    }
-
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.3s ease-in-out;
-    }
-
-    #btnvar {
-      background-color: orange;
-      color: white;
-      margin-right: 10px;
-    }
-
-    #btnvar:hover {
-      background-color: red;
-    }
-
-
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Wall - Google Login</title>
+<style>
+body{
+  font-family:Poppins,sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+header{
+  width:90%;
+  max-width:650px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:white;
+  margin:20px;
+  font-size:22px;
+  font-weight:bold;
+}
+header button{
+  background:white;
+  color:#667eea;
+  border:none;
+  padding:8px 15px;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+}
+.container{
+  background:white;
+  border-radius:12px;
+  width:90%;
+  max-width:650px;
+  padding:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+input,button{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border-radius:10px;
+  border:2px solid #667eea;
+}
+button.postBtn{
+  background:#667eea;
+  color:white;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+}
+.posts{
+  margin-top:20px;
+  display:flex;
+  flex-direction:column-reverse;
+  gap:15px;
+}
+.post{
+  background:#f6f7ff;
+  border-radius:10px;
+  padding:10px;
+  position:relative;
+}
+.user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.user img{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+}
+.deleteBtn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#ff4b4b;
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:4px 8px;
+  cursor:pointer;
+  font-size:12px;
+}
+.time{font-size:12px;color:#777;}
+</style>
 </head>
 <body>
 
-  <div id="container">
-    <h1>Math by shiva singh</h1><br></br>
-    <button id="btnvar" onclick="location.href='math.html'">Math chatbot</button> <br></br>
-    <button id="btnvar" onclick="location.href='upon.html'">भिन्न कैलकुलेटर</button><br></br>
-        <button id="btnvar" onclick="location.href='unt.html'">Matrix Calucater</button> <br></br>
-    <button id="btnvar" onclick="location.href='tri.html'">Trigonometry calucater</button><br></br>
-    <button id="btnvar" onclick="location.href='lcmhcf.html'">L.C.M. H.C.F. Calucater</button> <br></br>
-    <button id="btnvar" onclick="location.href='cd.html'">Text encryption</button>
-  <br></br>
-  <button id="btnvar" onclick="location.href='.alg.html'">Algebraic Calucater(More than one equation)</button> <br></br>
-    <button id="btnvar" onclick="location.href='algg.html'">Algebraic calucalater(More than one degree)</button><br></br>
-    <button id="btnvar" onclick="location.href='tringle.html'">Triangle Calucater</button>
-  </div>
+<header>
+  <div>💬 Google Login Wall</div>
+  <button id="loginBtn">Login with Google</button>
+</header>
+
+<div class="container" id="app" style="display:none;">
+  <input type="text" id="msg" placeholder="Write something...">
+  <input type="file" id="imgInput" accept="image/*">
+  <button class="postBtn" id="postBtn">Post</button>
+  <div class="posts" id="posts"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { 
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { 
+  getDatabase, ref, push, onValue, remove 
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDwnnT438MxZS_MZgYCkexqO2Xl79lr_ww",
+  authDomain: "webex-aa9bc.firebaseapp.com",
+  databaseURL: "https://webex-aa9bc-default-rtdb.firebaseio.com/",
+  projectId: "webex-aa9bc",
+  storageBucket: "webex-aa9bc.firebasestorage.app",
+  messagingSenderId: "414824337045",
+  appId: "1:414824337045:web:8dc5a4c788c6958e0b159c"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+const db = getDatabase(app);
+
+const loginBtn = document.getElementById("loginBtn");
+const appDiv = document.getElementById("app");
+const msg = document.getElementById("msg");
+const imgInput = document.getElementById("imgInput");
+const postBtn = document.getElementById("postBtn");
+const postsDiv = document.getElementById("posts");
+
+// Google login
+loginBtn.onclick = async () => {
+  if (auth.currentUser) {
+    await signOut(auth);
+  } else {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      alert("Login failed: " + e.message);
+    }
+  }
+};
+
+// Auth state
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginBtn.textContent = "Logout (" + user.displayName + ")";
+    appDiv.style.display = "block";
+  } else {
+    loginBtn.textContent = "Login with Google";
+    appDiv.style.display = "none";
+  }
+});
+
+// Post upload
+postBtn.onclick = () => {
+  const user = auth.currentUser;
+  if (!user) return alert("Please login first!");
+  const text = msg.value.trim();
+  const file = imgInput.files[0];
+  if (!text && !file) return alert("Write something or choose image!");
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => uploadPost(text, e.target.result, user);
+    reader.readAsDataURL(file);
+  } else {
+    uploadPost(text, "", user);
+  }
+
+  msg.value = "";
+  imgInput.value = "";
+};
+
+function uploadPost(text, image, user) {
+  push(ref(db, "posts/"), {
+    uid: user.uid,
+    name: user.displayName,
+    photo: user.photoURL,
+    text,
+    image,
+    time: Date.now()
+  });
+}
+
+// Realtime feed
+onValue(ref(db, "posts/"), (snapshot) => {
+  const data = snapshot.val();
+  postsDiv.innerHTML = "";
+  if (data) {
+    const entries = Object.entries(data).sort((a,b)=>b[1].time - a[1].time);
+    const currentUser = auth.currentUser;
+    for (const [id, p] of entries) {
+      const t = new Date(p.time).toLocaleString();
+      const div = document.createElement("div");
+      div.className = "post";
+      div.innerHTML = `
+        <div class="user">
+          <img src="${p.photo || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}">
+          <b>${p.name || 'Anonymous'}</b>
+        </div>
+        <div>${p.text || ""}</div>
+        ${p.image ? `<img src="${p.image}">` : ""}
+        <div class="time">${t}</div>
+        ${currentUser && currentUser.uid === p.uid ?
+          `<button class="deleteBtn" data-id="${id}">Delete</button>` : ""}
+      `;
+      postsDiv.appendChild(div);
+    }
+
+    // delete function
+    document.querySelectorAll(".deleteBtn").forEach(btn => {
+      btn.onclick = () => {
+        if (confirm("Delete this post?")) {
+          remove(ref(db, "posts/" + btn.dataset.id));
+        }
+      };
+    });
+  }
+});
+</script>
 
 </body>
 </html>
